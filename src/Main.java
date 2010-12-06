@@ -76,7 +76,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		List<Example> train = readData("train.txt");
-		Classifier c = new DecisionTree(DecisionTree.SplittingRule.RANDOM, 100);
+		Classifier c = new DecisionTree(DecisionTree.SplittingRule.INFO_GAIN, 7);
 		c.train(train);
 		List<Example> test = readData("test.txt");
 		System.out.println(computeAccuracy(c, test));

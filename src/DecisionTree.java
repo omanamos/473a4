@@ -103,9 +103,12 @@ public class DecisionTree implements Classifier {
 	 * @param examples current list of examples
 	 * @param attributes current list of attributes
 	 * @return index of the most selected attribute to split on. Chosen based off of the global SplittingRule, rule.
+	 * @throws IllegalArgumentException if attributes.size() == 0
 	 */
 	private int getMostImportant(Map<Boolean, List<Example>> examples, List<Integer> attributes){
-		if(this.rule == SplittingRule.RANDOM)
+		if(attributes.size() == 0){
+			throw new IllegalArgumentException("List of attributes is empty.");
+		}else if(this.rule == SplittingRule.RANDOM)
 			return (int)(Math.random() * attributes.size());
 		else{
 			int maxAttrInd = 0;
@@ -147,7 +150,10 @@ public class DecisionTree implements Classifier {
 		}
 		
 		int exSize = examples.get(false).size() + examples.get(true).size();
-		return 1.0 - (((pkPos + nkPos) / exSize) * calculateEntropy(pkPos / (pkPos + nkPos)) + ((pkNeg + nkNeg) / exSize) * calculateEntropy(pkNeg / (pkNeg + nkNeg)));
+		double posEntropy = calculateEntropy((double)pkPos / (pkPos + nkPos));
+		double negEntropy = calculateEntropy((double)pkNeg / (pkNeg + nkNeg));
+		double rtn = 1.0 - (((pkPos + nkPos) / exSize) * posEntropy) + (((pkNeg + nkNeg) / exSize) * negEntropy);
+		return rtn;
 	}
 	
 	private double calculateEntropy(double q){
