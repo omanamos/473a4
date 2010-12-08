@@ -131,32 +131,38 @@ public class DecisionTree implements Classifier {
 	 * @return InfoGain of splitting on the given attr
 	 */
 	private double calculateGain(Map<Boolean, List<Example>> examples, Integer attr){
-		int pkPos = 0;
-		int nkPos = 0;
+		double pkPos = 0.0;
+		double nkPos = 0.0;
+		double pkNeg = 0.0;
+		double nkNeg = 0.0;
+		
 		for(Example e : examples.get(true)){
 			if(e.getData()[attr])
 				pkPos++;
 			else
-				nkPos++;
+				pkNeg++;
 		}
 		
-		int pkNeg = 0;
-		int nkNeg = 0;
 		for(Example e : examples.get(false)){
 			if(e.getData()[attr])
-				pkNeg++;
+				nkPos++;
 			else
 				nkNeg++;
 		}
 		
-		int exSize = examples.get(false).size() + examples.get(true).size();
-		double posEntropy = calculateEntropy((double)pkPos / (pkPos + nkPos));
-		double negEntropy = calculateEntropy((double)pkNeg / (pkNeg + nkNeg));
-		double rtn = 1.0 - (((pkPos + nkPos) / exSize) * posEntropy) + (((pkNeg + nkNeg) / exSize) * negEntropy);
+		double exSize = examples.get(false).size() + examples.get(true).size();
+		double posEntropy = calculateEntropy(pkPos / (pkPos + nkPos));
+		double negEntropy = calculateEntropy(pkNeg / (pkNeg + nkNeg));
+		double baseEntropy = calculateEntropy(examples.get(true).size() / exSize);
+		double rtn = baseEntropy - 
+						(((pkPos + nkPos) / exSize) * posEntropy + 
+						 ((pkNeg + nkNeg) / exSize) * negEntropy);
 		return rtn;
 	}
 	
 	private double calculateEntropy(double q){
+		if(q == 0.0 || q == 1.0)
+			return 0.0;
 		return -(q * (Math.log10(q) / Math.log10(2)) + (1 - q) * (Math.log10(1 - q) / Math.log10(2)));
 	}
 	
