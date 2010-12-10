@@ -13,6 +13,9 @@ public class DecisionTree implements Classifier {
 	private Node root;
 	private SplittingRule rule;
 	private int depthLimit;
+	
+	private double goalEntropy;
+	private double exampleSize;
 
 	
 	public DecisionTree(SplittingRule rule, int depthLimit) {
@@ -38,6 +41,8 @@ public class DecisionTree implements Classifier {
 		exs.put(true, pos);
 		exs.put(false, neg);
 		
+		this.goalEntropy = calculateEntropy((double)pos.size() / (pos.size() + neg.size()));
+		this.exampleSize = examples.size();
 		this.root = buildTree(exs, attributes, new HashMap<Boolean, List<Example>>(), 0);
 	}
 	
@@ -128,30 +133,38 @@ public class DecisionTree implements Classifier {
 	 * @return InfoGain of splitting on the given attr
 	 */
 	private double calculateGain(Map<Boolean, List<Example>> examples, Integer attr){
-		int pkPos = 0;
-		int nkPos = 0;
+		double pkPos = 0.0;
+		double nkPos = 0.0;
+		double pkNeg = 0.0;
+		double nkNeg = 0.0;
+		
 		for(Example e : examples.get(true)){
 			if(e.getData()[attr])
 				pkPos++;
 			else
-				nkPos++;
+				pkNeg++;
 		}
 		
-		int pkNeg = 0;
-		int nkNeg = 0;
 		for(Example e : examples.get(false)){
 			if(e.getData()[attr])
-				pkNeg++;
+				nkPos++;
 			else
 				nkNeg++;
 		}
 		
-		int exSize = examples.get(false).size() + examples.get(true).size();
-		return 1.0 - (((pkPos + nkPos) / exSize) * calculateEntropy(pkPos / (pkPos + nkPos)) + ((pkNeg + nkNeg) / exSize) * calculateEntropy(pkNeg / (pkNeg + nkNeg)));
+		double exSize = (double)this.exampleSize;
+		
+		double posRemainder = ((pkPos + nkPos) / exSize) * calculateEntropy(pkPos / (pkPos + nkPos));
+		double negRemainder = ((pkNeg + nkNeg) / exSize) * calculateEntropy(pkNeg / (pkNeg + nkNeg));
+		double rtn = this.goalEntropy - (posRemainder + negRemainder);
+		return rtn;
 	}
 	
 	private double calculateEntropy(double q){
-		return -(q * (Math.log10(q) / Math.log10(2)) + (1 - q) * (Math.log10(1 - q) / Math.log10(2)));
+		if(q == 0.0 || q == 1.0)
+			return 0.0;
+		else
+			return -(q * (Math.log10(q) / Math.log10(2)) + (1 - q) * (Math.log10(1 - q) / Math.log10(2)));
 	}
 	
 	private LeafNode classify(Map<Boolean, List<Example>> examples){
