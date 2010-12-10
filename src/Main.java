@@ -76,9 +76,34 @@ public class Main {
 	
 	public static void main(String[] args) {
 		List<Example> train = readData("train.txt");
-		Classifier c = new DecisionTree(DecisionTree.SplittingRule.INFO_GAIN, 20);
-		c.train(train);
 		List<Example> test = readData("test.txt");
-		System.out.println(computeAccuracy(c, train));
+		
+		test(train, test);
+	}
+	
+	private static void test(List<Example> train, List<Example> test){
+		System.out.println("Depth,Info Gain Training Accuracy,Info Gain Test Accuracy,Random Training Accuracy,Random Test Accuracy");
+		for(int i = 1; i <= 30; i++){
+			Classifier infoGain = new DecisionTree(DecisionTree.SplittingRule.INFO_GAIN, i);
+			infoGain.train(train);
+			
+			double infoGainTrain = computeAccuracy(infoGain, train);
+			double infoGainTest = computeAccuracy(infoGain, test);
+			
+			double randomTrain = testRandom(train, train, i);
+			double randomTest = testRandom(train , test, i);
+			
+			System.out.println(i + "," + infoGainTrain + "," + infoGainTest + "," + randomTrain + "," + randomTest);
+		}
+	}
+	
+	private static double testRandom(List<Example> train, List<Example> test, int maxDepth){
+		double rtn = 0;
+		for(int i = 0; i < 100; i++){
+			Classifier random = new DecisionTree(DecisionTree.SplittingRule.RANDOM, maxDepth);
+			random.train(train);
+			rtn += computeAccuracy(random, test);
+		}
+		return rtn / 100.0;
 	}
 }

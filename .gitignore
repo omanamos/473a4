@@ -1,4 +1,6 @@
 .settings
 *.class
+*.pdf
+*.xlsx
 .classpath
 .project
