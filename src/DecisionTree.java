@@ -60,9 +60,10 @@ public class DecisionTree implements Classifier {
 			Map<Boolean, List<Example>> negExamples = tmp.get(0);
 			Map<Boolean, List<Example>> posExamples = tmp.get(1);
 			
-			return new DecisionNode(attr, 
-					buildTree(negExamples, attributes, examples, depth + 1), //negative subtree
-					buildTree(posExamples, attributes, examples, depth + 1));//positive subtree
+			Node left = buildTree(negExamples, attributes, examples, depth + 1);
+			attributes.add(attrInd, attr);
+			Node right = buildTree(posExamples, attributes, examples, depth + 1);
+			return new DecisionNode(attr, left, right);
 		}
 	}
 	
@@ -116,7 +117,7 @@ public class DecisionTree implements Classifier {
 			
 			for(int i = 1; i < attributes.size(); i++){
 				double curGain = calculateGain(examples, attributes.get(i));
-				if(curGain >= maxGain){
+				if(curGain > maxGain){
 					maxGain = curGain;
 					maxAttrInd = i;
 				}
@@ -160,16 +161,20 @@ public class DecisionTree implements Classifier {
 		return rtn;
 	}
 	
-	private double calculateEntropy(double q){
+	private static double calculateEntropy(double q){
 		if(q == 0.0 || q == 1.0)
 			return 0.0;
-		return -(q * (Math.log10(q) / Math.log10(2)) + (1 - q) * (Math.log10(1 - q) / Math.log10(2)));
+		return -((q * log(q, 2)) + ((1 - q) * log(1 - q, 2)));
+	}
+	
+	private static double log(double q, int base){
+		return Math.log10(q) / Math.log10(base);
 	}
 	
 	private LeafNode classify(Map<Boolean, List<Example>> examples){
 		int posCount = examples.get(true).size();
 		int negCount = examples.get(false).size();
-		return new LeafNode((posCount == negCount) ? Math.random() > .5 : posCount > negCount);
+		return new LeafNode((posCount == negCount) ? Math.random() > 0.5 : posCount > negCount);
 	}
 	
 	public boolean predict(boolean[] example) {
