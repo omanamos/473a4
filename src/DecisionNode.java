@@ -22,4 +22,8 @@ public class DecisionNode implements Node{
 	public Node getRight(){
 		return this.right;
 	}
+	
+	public String toString(){
+		return this.attribute + "";
+	}
 }

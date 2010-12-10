@@ -10,4 +10,8 @@ public class LeafNode implements Node {
 	public boolean getClassification(){
 		return this.classification;
 	}
+	
+	public String toString(){
+		return this.classification + "";
+	}
 }

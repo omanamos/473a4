@@ -14,9 +14,6 @@ public class DecisionTree implements Classifier {
 	private SplittingRule rule;
 	private int depthLimit;
 	
-	private double goalEntropy;
-	private double exampleSize;
-
 	
 	public DecisionTree(SplittingRule rule, int depthLimit) {
 		this.rule = rule;
@@ -41,8 +38,6 @@ public class DecisionTree implements Classifier {
 		exs.put(true, pos);
 		exs.put(false, neg);
 		
-		this.goalEntropy = calculateEntropy((double)pos.size() / (pos.size() + neg.size()));
-		this.exampleSize = examples.size();
 		this.root = buildTree(exs, attributes, new HashMap<Boolean, List<Example>>(), 0);
 	}
 	
@@ -65,9 +60,10 @@ public class DecisionTree implements Classifier {
 			Map<Boolean, List<Example>> negExamples = tmp.get(0);
 			Map<Boolean, List<Example>> posExamples = tmp.get(1);
 			
-			return new DecisionNode(attr, 
-					buildTree(negExamples, attributes, examples, depth + 1), //negative subtree
-					buildTree(posExamples, attributes, examples, depth + 1));//positive subtree
+			Node left = buildTree(negExamples, attributes, examples, depth + 1);
+			attributes.add(attrInd, attr);
+			Node right = buildTree(posExamples, attributes, examples, depth + 1);
+			return new DecisionNode(attr, left, right);
 		}
 	}
 	
@@ -108,9 +104,12 @@ public class DecisionTree implements Classifier {
 	 * @param examples current list of examples
 	 * @param attributes current list of attributes
 	 * @return index of the most selected attribute to split on. Chosen based off of the global SplittingRule, rule.
+	 * @throws IllegalArgumentException if attributes.size() == 0
 	 */
 	private int getMostImportant(Map<Boolean, List<Example>> examples, List<Integer> attributes){
-		if(this.rule == SplittingRule.RANDOM)
+		if(attributes.size() == 0){
+			throw new IllegalArgumentException("List of attributes is empty.");
+		}else if(this.rule == SplittingRule.RANDOM)
 			return (int)(Math.random() * attributes.size());
 		else{
 			int maxAttrInd = 0;
@@ -118,7 +117,7 @@ public class DecisionTree implements Classifier {
 			
 			for(int i = 1; i < attributes.size(); i++){
 				double curGain = calculateGain(examples, attributes.get(i));
-				if(curGain >= maxGain){
+				if(curGain > maxGain){
 					maxGain = curGain;
 					maxAttrInd = i;
 				}
@@ -152,25 +151,30 @@ public class DecisionTree implements Classifier {
 				nkNeg++;
 		}
 		
-		double exSize = (double)this.exampleSize;
-		
-		double posRemainder = ((pkPos + nkPos) / exSize) * calculateEntropy(pkPos / (pkPos + nkPos));
-		double negRemainder = ((pkNeg + nkNeg) / exSize) * calculateEntropy(pkNeg / (pkNeg + nkNeg));
-		double rtn = this.goalEntropy - (posRemainder + negRemainder);
+		double exSize = examples.get(false).size() + examples.get(true).size();
+		double posEntropy = calculateEntropy(pkPos / (pkPos + nkPos));
+		double negEntropy = calculateEntropy(pkNeg / (pkNeg + nkNeg));
+		double baseEntropy = calculateEntropy(examples.get(true).size() / exSize);
+		double rtn = baseEntropy - 
+						(((pkPos + nkPos) / exSize) * posEntropy + 
+						 ((pkNeg + nkNeg) / exSize) * negEntropy);
 		return rtn;
 	}
 	
-	private double calculateEntropy(double q){
+	private static double calculateEntropy(double q){
 		if(q == 0.0 || q == 1.0)
 			return 0.0;
-		else
-			return -(q * (Math.log10(q) / Math.log10(2)) + (1 - q) * (Math.log10(1 - q) / Math.log10(2)));
+		return -((q * log(q, 2)) + ((1 - q) * log(1 - q, 2)));
+	}
+	
+	private static double log(double q, int base){
+		return Math.log10(q) / Math.log10(base);
 	}
 	
 	private LeafNode classify(Map<Boolean, List<Example>> examples){
 		int posCount = examples.get(true).size();
 		int negCount = examples.get(false).size();
-		return new LeafNode((posCount == negCount) ? Math.random() > .5 : posCount > negCount);
+		return new LeafNode((posCount == negCount) ? Math.random() > 0.5 : posCount > negCount);
 	}
 	
 	public boolean predict(boolean[] example) {
