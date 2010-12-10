@@ -101,5 +101,21 @@ of overfit to guess based off of the training data.
 
 
 ************************************************************************************************
-Extra Credit - Random Forests
+Extra Credit - Random Forests - graph3.pdf, data3.pdf
 ************************************************************************************************
+The Random Forests performed progressively better as the depth increased. The prediction for the
+training set reached 100% accuracy at height 27 and stayed constant at that after height 29. The
+test set accuracy pretty much stayed between 97% and 98% accuracy from max depth 29 and greater. 
+From this data, it seems that The Info Gain method is still a better option that Random Forests 
+for several reasons:
+	- It has much higher accuracies at smaller maxDepths (Random Forests reaches its max with 
+	  depth 29, Info Gain reaches it around height 15.
+	- Info Gain still has a better accuracy for all maxDepths less than 100 for the test data.
+	- Info Gain is much faster, since you only have to run the predict and train algorithms
+	  on one tree instead of 100.
+The one prediction that the Random Forest did better than Info Gain was predicting on the 
+training set. The Random Forest reaches 100% accuracy, whereas the Info Gain trees are 
+just short of 100%. This is most likely because when an wrong answer is provided in a 
+decision tree, it is most likely to be specific to that tree structure; therefore, since the
+Random Forest has the majority rules method, it ignores these independent errors that a 
+single tree might return.

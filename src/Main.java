@@ -79,14 +79,15 @@ public class Main {
 		List<Example> test = readData("test.txt");
 		
 		test(train, test);
+		testForests(train, test);
 	}
 	
 	private static void test(List<Example> train, List<Example> test){
 		System.out.println("Depth,Info Gain Training Accuracy,Info Gain Test Accuracy,Random Training Accuracy,Random Test Accuracy");
 		for(int i = 1; i <= 30; i++){
+			
 			Classifier infoGain = new DecisionTree(DecisionTree.SplittingRule.INFO_GAIN, i);
 			infoGain.train(train);
-			
 			double infoGainTrain = computeAccuracy(infoGain, train);
 			double infoGainTest = computeAccuracy(infoGain, test);
 			
@@ -94,6 +95,24 @@ public class Main {
 			double randomTest = testRandom(train , test, i);
 			
 			System.out.println(i + "," + infoGainTrain + "," + infoGainTest + "," + randomTrain + "," + randomTest);
+		}
+	}
+	
+	private static void testForests(List<Example> train, List<Example> test){
+		System.out.println("Depth,Info Gain Training Accuracy,Info Gain Test Accuracy,Random Forest Training Accuracy, Random Forest Test Accuracy");
+		for(int i = 1; i <= 100; i++){
+			
+			Classifier infoGain = new DecisionTree(DecisionTree.SplittingRule.INFO_GAIN, i);
+			infoGain.train(train);
+			double infoGainTrain = computeAccuracy(infoGain, train);
+			double infoGainTest = computeAccuracy(infoGain, test);
+			
+			Classifier randomForest = new RandomForest(101, i);
+			randomForest.train(train);
+			double randomForestTrain = computeAccuracy(randomForest, train);
+			double randomForestTest = computeAccuracy(randomForest, test);
+			
+			System.out.println(i + "," + infoGainTrain + "," + infoGainTest + "," + randomForestTrain + "," + randomForestTest);
 		}
 	}
 	
