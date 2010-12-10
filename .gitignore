@@ -3,5 +3,6 @@
 *.pdf
 *.xlsx
 *.docx
+*.zip
 .classpath
 .project
